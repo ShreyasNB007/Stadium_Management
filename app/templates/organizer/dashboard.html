@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Organizer Dashboard - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Organizer Dashboard</h1>
+        <div>
+            <a href="{{ url_for('organizer.create_event') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New Event
+            </a>
+        </div>
+    </div>
+    <!-- Quick Stats -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-calendar-event"></i> Total Events</h5>
+                    <p class="card-text display-6">{{ events|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-check-circle"></i> Approved</h5>
+                    <p class="card-text display-6">
+                        {{ events|selectattr('status', 'equalto', 'approved')|list|length }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-hourglass-split"></i> Pending</h5>
+                    <p class="card-text display-6">
+                        {{ events|selectattr('status', 'equalto', 'pending')|list|length }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-ticket-perforated"></i> Tickets Available</h5>
+                    <p class="card-text display-6">
+                        {{ events|sum(attribute='available_tickets') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Events Section -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">My Events</h2>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterEvents('all')">All</button>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="filterEvents('approved')">Approved</button>
+                <button type="button" class="btn btn-sm btn-outline-warning" onclick="filterEvents('pending')">Pending</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="filterEvents('rejected')">Rejected</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Stadium</th>
+                            <th>Date & Time</th>
+                            <th>Category</th>
+                            <th>Available Tickets</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                            <tr class="event-row" data-status="{{ event.status }}">
+                                <td>
+                                    {% if event.thumbnail %}
+                                        <img src="{{ url_for('static', filename='event_thumbnails/' ~ event.thumbnail) }}" alt="Thumbnail" class="img-thumbnail me-2" style="max-width: 60px; max-height: 40px;">
+                                    {% endif %}
+                                    {{ event.name }}
+                                </td>
+                                <td>{{ event.stadium.name }}</td>
+                                <td>
+                                    {% if event.time_slot and event.time_slot.start_time %}
+                                        {{ event.time_slot.start_time.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        TBA
+                                    {% endif %}
+                                </td>
+                                <td>{% if event.category %}{{ event.category.name }}{% else %}Uncategorized{% endif %}</td>
+                                <td>{{ event.available_tickets }}/{{ event.total_tickets }}</td>
+                                <td>
+                                    <span class="badge {% if event.status == 'approved' %}bg-success{% elif event.status == 'pending' %}bg-warning{% elif event.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ event.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-info me-1" onclick="showEventDetails({{ event.id }})" title="View Details" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></button>
+                                        {% if event.status == 'pending' or event.status == 'rejected' %}
+                                        <a href="{{ url_for('organizer.edit_event', event_id=event.id) }}" class="btn btn-sm btn-outline-warning me-1" title="Edit Event" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </a>
+                                            <form method="POST" action="{{ url_for('organizer.delete_event', event_id=event.id) }}" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Event" data-bs-toggle="tooltip" data-bs-placement="top" onclick="return confirm('Are you sure you want to delete this event? This action cannot be undone.');">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">No events found</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterEvents(status) {
+    const rows = document.querySelectorAll('.event-row');
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function showEventDetails(eventId) {
+    // Fetch event details and populate modal
+    fetch(`/organizer/api/events/${eventId}`)
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('eventDetailsContent');
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Event Information</h6>
+                        <p><strong>Title:</strong> ${data.name}</p>
+                        <p><strong>Description:</strong> ${data.description}</p>
+                        <p><strong>Category:</strong> ${data.category ? data.category.name : 'Uncategorized'}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Ticket Information</h6>
+                        <p><strong>Total Tickets:</strong> ${data.total_tickets}</p>
+                        <p><strong>Available Tickets:</strong> ${data.available_tickets}</p>
+                        <p><strong>Sold Tickets:</strong> ${data.total_tickets - data.available_tickets}</p>
+                    </div>
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('eventDetailsModal')).show();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Enable Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %} 

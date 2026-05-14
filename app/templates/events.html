@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>Events</h2>
+            
+            <!-- Search and Filter Form -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form action="{{ url_for('main.events') }}" method="GET" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" name="search" placeholder="Search events..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" name="category">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id|string == selected_category %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for event in events %}
+                <div class="col">
+                    <div class="card h-100">
+                        {% if event.thumbnail %}
+                        <img src="{{ url_for('static', filename='event_thumbnails/' + event.thumbnail) }}" 
+                             class="card-img-top" alt="{{ event.name }}"
+                             style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/default_event.jpg') }}" 
+                             class="card-img-top" alt="Default Event Image"
+                             style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ event.name }}</h5>
+                            <p class="card-text">{{ event.description|truncate(100) }}</p>
+                            <div class="mb-3">
+                                <p class="mb-1 small"><i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ event.stadium.name }}</p>
+                                <p class="mb-1 small"><i class="bi bi-calendar"></i> <strong>Date & Time:</strong> 
+                                    {% if event.event_date and event.event_time %}
+                                        {{ event.event_date.strftime('%Y-%m-%d') }} at {{ event.event_time.strftime('%H:%M') }}
+                                    {% else %}
+                                        To be announced
+                                    {% endif %}
+                                </p>
+                                <p class="mb-1 small"><i class="bi bi-ticket"></i> <strong>Available Tickets:</strong> {{ event.available_tickets }}</p>
+                            </div>
+                            {% if current_user.is_authenticated %}
+                                {% if event.available_tickets > 0 %}
+                                    <a href="{{ url_for('main.book_event', event_id=event.id) }}" class="btn btn-primary">Book Now</a>
+                                {% else %}
+                                    <button class="btn btn-secondary" disabled>Sold Out</button>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login to Book</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if not events %}
+            <div class="alert alert-info">
+                No events found{% if search %} matching "{{ search }}"{% endif %}{% if selected_category %} in the selected category{% endif %}.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

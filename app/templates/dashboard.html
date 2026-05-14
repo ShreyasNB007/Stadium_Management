@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Dashboard</h1>
+    
+    {% if current_user.role == 'admin' %}
+        <!-- Admin Dashboard -->
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Stadiums</h5>
+                        <p class="card-text">Manage stadiums and their details</p>
+                        <a href="{{ url_for('admin.stadiums') }}" class="btn btn-primary">Manage Stadiums</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Events</h5>
+                        <p class="card-text">Review and manage events</p>
+                        <a href="{{ url_for('admin.events') }}" class="btn btn-primary">Manage Events</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Users</h5>
+                        <p class="card-text">Manage user accounts</p>
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-primary">Manage Users</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% elif current_user.role == 'organizer' %}
+        <!-- Organizer Dashboard -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">My Events</h5>
+                        <p class="card-text">Manage your events</p>
+                        <a href="{{ url_for('organizer.my_events') }}" class="btn btn-primary">View Events</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Create Event</h5>
+                        <p class="card-text">Create a new event</p>
+                        <a href="{{ url_for('organizer.create_event') }}" class="btn btn-primary">Create Event</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% else %}
+        <!-- Customer Dashboard -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">My Tickets</h5>
+                        <p class="card-text">View your booked tickets</p>
+                        <a href="{{ url_for('customer.my_tickets') }}" class="btn btn-primary">View Tickets</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Browse Events</h5>
+                        <p class="card-text">Find and book events</p>
+                        <a href="{{ url_for('main.events') }}" class="btn btn-primary">Browse Events</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

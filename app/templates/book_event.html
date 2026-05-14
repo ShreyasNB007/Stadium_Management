@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Book Tickets - {{ event.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Event Details Card -->
+            <div class="card shadow mb-4">
+                <div class="row g-0">
+                    {% if event.stadium.image_url %}
+                    <div class="col-md-4">
+                         <img src="{{ event.stadium.formatted_image_url }}" class="img-fluid rounded-start h-100 object-fit-cover" alt="{{ event.stadium.name }}">
+                    </div>
+                    {% endif %}
+                    <div class="{{ 'col-md-8' if event.stadium.image_url else 'col-md-12' }} d-flex align-items-center">
+                        <div class="card-body">
+                            <h3 class="card-title mb-3">{{ event.name }}</h3>
+                            <div class="d-flex flex-column gap-2">
+                                <p class="card-text mb-0"><i class="bi bi-geo-alt-fill text-primary"></i> <strong>Stadium:</strong> {{ event.stadium.name }}</p>
+                                <p class="card-text mb-0"><i class="bi bi-calendar-event-fill text-primary"></i> <strong>Event Date:</strong> 
+                                    {% if event.event_date and event.event_time %}
+                                        {{ event.event_date.strftime('%Y-%m-%d') }} at {{ event.event_time.strftime('%H:%M') }}
+                                    {% else %}
+                                        To be announced
+                                    {% endif %}
+                                </p>
+                                <p class="card-text mb-0"><i class="bi bi-ticket-perforated-fill text-primary"></i> <strong>Available Tickets:</strong> <span class="badge bg-success">{{ event.available_tickets }}</span></p>
+                            </div>
+                            {% if event.description %}
+                            <p class="card-text mt-3 text-muted">{{ event.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Form Card -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Select Your Tickets</h5>
+                    <form id="bookingForm" method="POST" action="{{ url_for('main.book_event', event_id=event.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Ticket Quantity Selector -->
+                        <div class="mb-4">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>Number of Tickets</span>
+                                <span class="badge bg-primary" id="selectedQuantity">1</span>
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-primary btn-lg px-3" id="decreaseQuantity" disabled>
+                                    <span class="fs-4">-</span>
+                                </button>
+                                <input type="number" class="form-control form-control-lg text-center" 
+                                       id="quantity" name="quantity" min="1" max="10" 
+                                       value="1" required style="max-width: 100px;">
+                                <button type="button" class="btn btn-outline-primary btn-lg px-3" id="increaseQuantity">
+                                    <span class="fs-4">+</span>
+                                </button>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="bi bi-info-circle"></i> Maximum 10 tickets per booking. Available tickets: {{ event.available_tickets }}
+                            </div>
+                        </div>
+
+                        <!-- Stand Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Select Your Preferred Stand</label>
+                            <div class="row g-3">
+                                {% for stand in ['North', 'South', 'East', 'West'] %}
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="stand" 
+                                               id="stand{{ stand }}" value="{{ stand }}" 
+                                               {% if loop.first %}checked{% endif %}>
+                                        <label class="form-check-label w-100 p-3 border rounded" for="stand{{ stand }}">
+                                            <i class="bi bi-geo-alt-fill me-2"></i>{{ stand }} Stand
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-ticket-perforated-fill me-2"></i>Book Tickets
+                            </button>
+                            <a href="{{ url_for('main.events') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('quantity');
+    const decreaseBtn = document.getElementById('decreaseQuantity');
+    const increaseBtn = document.getElementById('increaseQuantity');
+    const selectedQuantityBadge = document.getElementById('selectedQuantity');
+    const maxTickets = Math.min(10, {{ event.available_tickets }}); // Maximum of 10 tickets or available tickets, whichever is lower
+
+    function updateQuantityButtons() {
+        const currentValue = parseInt(quantityInput.value);
+        decreaseBtn.disabled = currentValue <= 1;
+        increaseBtn.disabled = currentValue >= maxTickets;
+        selectedQuantityBadge.textContent = currentValue;
+    }
+
+    decreaseBtn.addEventListener('click', () => {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+            updateQuantityButtons();
+        }
+    });
+
+    increaseBtn.addEventListener('click', () => {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue < maxTickets) {
+            quantityInput.value = currentValue + 1;
+            updateQuantityButtons();
+        }
+    });
+
+    quantityInput.addEventListener('change', function() {
+        let value = parseInt(this.value);
+        if (isNaN(value) || value < 1) value = 1;
+        if (value > maxTickets) value = maxTickets;
+        this.value = value;
+        updateQuantityButtons();
+    });
+
+    // Initialize button states
+    updateQuantityButtons();
+});
+</script>
+{% endblock %} 

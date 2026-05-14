@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Stadium{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Edit Stadium</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Stadium Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ stadium.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ stadium.location }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="capacity" class="form-label">Capacity</label>
+                            <input type="number" class="form-control" id="capacity" name="capacity" value="{{ stadium.capacity }}" required min="1">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price_per_hour" class="form-label">Price Per Hour</label>
+                            <input type="number" class="form-control" id="price_per_hour" name="price_per_hour" value="{{ stadium.price_per_hour }}" required min="0" step="0.01">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="facilities" class="form-label">Facilities</label>
+                            <textarea class="form-control" id="facilities" name="facilities" rows="3" placeholder="Enter facilities (comma-separated)">{{ stadium.facilities }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Stadium Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div id="imagePreview" class="mt-2" {% if not stadium.image_url %}style="display: none;"{% endif %}>
+                                <img src="{{ stadium.formatted_image_url }}" alt="Stadium preview" class="img-fluid rounded" style="max-height: 200px;">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Stadium</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = imagePreview.querySelector('img');
+    
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %} 

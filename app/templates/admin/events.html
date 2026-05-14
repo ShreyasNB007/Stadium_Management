@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Events - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>Manage Events</h2>
+            
+            <!-- Status Filter -->
+            <div class="btn-group mb-3">
+                <a href="{{ url_for('admin.events') }}" 
+                   class="btn btn-outline-primary {% if not status %}active{% endif %}">
+                    All Events
+                </a>
+                <a href="{{ url_for('admin.events', status='pending') }}" 
+                   class="btn btn-outline-warning {% if status == 'pending' %}active{% endif %}">
+                    Pending
+                </a>
+                <a href="{{ url_for('admin.events', status='approved') }}" 
+                   class="btn btn-outline-success {% if status == 'approved' %}active{% endif %}">
+                    Approved
+                </a>
+                <a href="{{ url_for('admin.events', status='rejected') }}" 
+                   class="btn btn-outline-danger {% if status == 'rejected' %}active{% endif %}">
+                    Rejected
+                </a>
+            </div>
+
+            <!-- Events Table -->
+            <div class="card">
+                <div class="card-body">
+                    {% if events %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event Name</th>
+                                    <th>Stadium</th>
+                                    <th>Created Date</th>
+                                    <th>Organizer</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr id="event-{{ event.id }}">
+                                    <td>{{ event.name }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.view_stadium', id=event.stadium.id) }}">
+                                            {{ event.stadium.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ event.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ event.organizer.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ event.status|status_color }}">
+                                            {{ event.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            {% if event.status == 'pending' %}
+                                            <form action="{{ url_for('admin.approve_event', id=event.id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-success btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to approve this event?')">
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            <form action="{{ url_for('admin.reject_event', id=event.id) }}" method="POST" class="d-inline ms-1">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to reject this event?')">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-info btn-sm ms-1" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#eventModal{{ event.id }}">
+                                                Details
+                                            </button>
+                                        </div>
+
+                                        <!-- Event Details Modal -->
+                                        <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" 
+                                             aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="eventModalLabel{{ event.id }}">
+                                                            Event Details: {{ event.name }}
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <dl class="row">
+                                                            <dt class="col-sm-4">Event Name</dt>
+                                                            <dd class="col-sm-8">{{ event.name }}</dd>
+
+                                                            <dt class="col-sm-4">Stadium</dt>
+                                                            <dd class="col-sm-8">{{ event.stadium.name }}</dd>
+
+                                                            <dt class="col-sm-4">Location</dt>
+                                                            <dd class="col-sm-8">{{ event.stadium.location }}</dd>
+
+                                                            <dt class="col-sm-4">Created Date</dt>
+                                                            <dd class="col-sm-8">{{ event.created_at.strftime('%Y-%m-%d') }}</dd>
+
+                                                            <dt class="col-sm-4">Organizer</dt>
+                                                            <dd class="col-sm-8">{{ event.organizer.name }}</dd>
+
+                                                            <dt class="col-sm-4">Contact</dt>
+                                                            <dd class="col-sm-8">{{ event.organizer.email }}</dd>
+
+                                                            <dt class="col-sm-4">Status</dt>
+                                                            <dd class="col-sm-8">
+                                                                <span class="badge bg-{{ event.status|status_color }}">
+                                                                    {{ event.status|title }}
+                                                                </span>
+                                                            </dd>
+
+                                                            <dt class="col-sm-4">Description</dt>
+                                                            <dd class="col-sm-8">{{ event.description or 'No description provided' }}</dd>
+                                                        </dl>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        {% if event.status == 'pending' %}
+                                                        <form action="{{ url_for('admin.approve_event', id=event.id) }}" method="POST" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-success" 
+                                                                    onclick="return confirm('Are you sure you want to approve this event?')">
+                                                                Approve
+                                                            </button>
+                                                        </form>
+                                                        <form action="{{ url_for('admin.reject_event', id=event.id) }}" method="POST" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-danger" 
+                                                                    onclick="return confirm('Are you sure you want to reject this event?')">
+                                                                Reject
+                                                            </button>
+                                                        </form>
+                                                        {% endif %}
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        No events found{% if status %} with status "{{ status }}"{% endif %}.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

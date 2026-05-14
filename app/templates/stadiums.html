@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Stadiums - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>Available Stadiums</h2>
+            
+            <!-- Search Form -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form action="{{ url_for('main.stadiums') }}" method="GET" class="row g-3">
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="search" placeholder="Search stadiums by name or location..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Stadiums Grid -->
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for stadium in stadiums %}
+                <div class="col">
+                    <div class="card h-100">
+                        {% if stadium.image_url %}
+                        <img src="{{ url_for('static', filename='uploads/' + stadium.image_url) }}" 
+                             class="card-img-top" alt="{{ stadium.name }}"
+                             style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/default_stadium.jpg') }}" 
+                             class="card-img-top" alt="Default Stadium Image"
+                             style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ stadium.name }}</h5>
+                            <div class="mb-3">
+                                <p class="mb-1"><i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ stadium.location }}</p>
+                                <p class="mb-1"><i class="bi bi-people"></i> <strong>Capacity:</strong> {{ stadium.capacity }}</p>
+                                <p class="mb-1"><i class="bi bi-list-check"></i> <strong>Facilities:</strong> {{ stadium.facilities }}</p>
+                                {% if stadium.contact_info %}
+                                <p class="mb-1"><i class="bi bi-telephone"></i> <strong>Contact:</strong> {{ stadium.contact_info }}</p>
+                                {% endif %}
+                            </div>
+                            <a href="{{ url_for('main.events', search=stadium.name) }}" class="btn btn-primary">
+                                View Events
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if not stadiums %}
+            <div class="alert alert-info">
+                No stadiums found{% if search %} matching "{{ search }}"{% endif %}.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

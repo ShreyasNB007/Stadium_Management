@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Create Event{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient bg-primary text-white text-center">
+                    <h2 class="mb-0"><i class="bi bi-calendar-plus"></i> Create a New Event</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('organizer.create_event') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Event Details -->
+                        <h5 class="mb-3 border-bottom pb-2"><i class="bi bi-info-circle"></i> Event Details</h5>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Event Name <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-type"></i></span>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Summer Music Fest" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe your event..." required></textarea>
+                        </div>
+
+                        <!-- Date and Time Selection -->
+                        <h5 class="mb-3 mt-4 border-bottom pb-2"><i class="bi bi-clock"></i> Event Schedule</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="event_date" class="form-label">Event Date <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+                                    <input type="date" class="form-control" id="event_date" name="event_date" 
+                                           min="{{ now.strftime('%Y-%m-%d') }}" required>
+                                </div>
+                                <div class="form-text">Select a date for your event</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="event_time" class="form-label">Event Time <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                    <input type="time" class="form-control" id="event_time" name="event_time" required>
+                                </div>
+                                <div class="form-text">Select the start time for your event</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="duration_hours" class="form-label">Duration (Hours) <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-hourglass-split"></i></span>
+                                    <select class="form-select" id="duration_hours" name="duration_hours" required>
+                                        <option value="1">1 Hour</option>
+                                        <option value="2" selected>2 Hours</option>
+                                        <option value="3">3 Hours</option>
+                                        <option value="4">4 Hours</option>
+                                        <option value="5">5 Hours</option>
+                                        <option value="6">6 Hours</option>
+                                    </select>
+                                </div>
+                                <div class="form-text">Select how long your event will last</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="stadium_id" class="form-label">Stadium <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                                <select class="form-select" id="stadium_id" name="stadium_id" required>
+                                    <option value="">Select a stadium</option>
+                                    {% for stadium in stadiums %}
+                                    <option value="{{ stadium.id }}" 
+                                            data-capacity="{{ stadium.capacity }}"
+                                            data-price="{{ stadium.price_per_hour }}">
+                                        {{ stadium.name }} (Capacity: {{ stadium.capacity }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select a stadium for your event</div>
+                            </div>
+                        </div>
+
+                        <!-- Category Selection -->
+                        <div class="mb-3 mt-4">
+                            <label for="category_id" class="form-label">Category <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Tickets -->
+                        <h5 class="mb-3 mt-4 border-bottom pb-2"><i class="bi bi-ticket-perforated"></i> Tickets</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="total_tickets" class="form-label">Total Tickets <i class="bi bi-asterisk text-danger small" title="Required"></i></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-ticket"></i></span>
+                                    <input type="number" class="form-control" id="total_tickets" name="total_tickets" 
+                                           min="1" placeholder="e.g. 100" required>
+                                </div>
+                                <div class="form-text">Maximum tickets cannot exceed stadium capacity</div>
+                            </div>
+                        </div>
+
+                        <!-- Thumbnail -->
+                        <div class="mb-3 mt-4">
+                            <label for="thumbnail" class="form-label">Event Thumbnail</label>
+                            <input class="form-control" type="file" id="thumbnail" name="thumbnail" accept="image/*">
+                            <div class="form-text">Upload a cover image for your event (JPG, PNG, or GIF).</div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4 justify-content-end">
+                            <a href="{{ url_for('organizer.dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Create Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stadiumSelect = document.getElementById('stadium_id');
+    const totalTicketsInput = document.getElementById('total_tickets');
+    const eventDateInput = document.getElementById('event_date');
+    const eventTimeInput = document.getElementById('event_time');
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    eventDateInput.min = today;
+
+    // Validate total tickets against stadium capacity
+    stadiumSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const capacity = selectedOption.dataset.capacity;
+        if (capacity) {
+            totalTicketsInput.max = capacity;
+            if (parseInt(totalTicketsInput.value) > parseInt(capacity)) {
+                totalTicketsInput.value = capacity;
+            }
+        }
+    });
+
+    // Validate total tickets input
+    totalTicketsInput.addEventListener('change', function() {
+        const selectedOption = stadiumSelect.options[stadiumSelect.selectedIndex];
+        const capacity = selectedOption.dataset.capacity;
+        if (capacity && parseInt(this.value) > parseInt(capacity)) {
+            this.value = capacity;
+            alert('Total tickets cannot exceed stadium capacity');
+        }
+    });
+
+    // Validate date and time
+    function validateDateTime() {
+        const selectedDate = new Date(eventDateInput.value);
+        const selectedTime = eventTimeInput.value;
+        const now = new Date();
+        
+        // If date is today, ensure time is in the future
+        if (selectedDate.toDateString() === now.toDateString()) {
+            const [hours, minutes] = selectedTime.split(':');
+            const selectedDateTime = new Date();
+            selectedDateTime.setHours(parseInt(hours), parseInt(minutes));
+            
+            if (selectedDateTime <= now) {
+                alert('Event time must be in the future');
+                eventTimeInput.value = '';
+            }
+        }
+    }
+
+    eventDateInput.addEventListener('change', validateDateTime);
+    eventTimeInput.addEventListener('change', validateDateTime);
+});
+</script>
+{% endblock %} 

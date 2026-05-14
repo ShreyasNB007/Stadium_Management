@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Stadiums - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Manage Stadiums</h1>
+        <a href="{{ url_for('admin.create_stadium') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add New Stadium</a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for stadium in stadiums %}
+        <div class="col">
+            <div class="card h-100 shadow-sm stadium-card position-relative">
+                {% if stadium.image_url %}
+                    <img src="{{ stadium.formatted_image_url }}" class="card-img-top" alt="{{ stadium.name }}" style="height: 180px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title mb-1">{{ stadium.name }}</h5>
+                    <p class="mb-1 small"><i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ stadium.location }}</p>
+                    <p class="mb-1 small"><i class="bi bi-people"></i> <strong>Capacity:</strong> {{ stadium.capacity }}</p>
+                    <p class="mb-1 small"><i class="bi bi-tools"></i> <strong>Facilities:</strong> {{ stadium.facilities }}</p>
+                    <p class="mb-1 small"><i class="bi bi-cash"></i> <strong>Price/Hour:</strong> ${{ '%.2f'|format(stadium.price_per_hour) }}</p>
+                    <p class="mb-1 small"><i class="bi bi-telephone"></i> <strong>Contact:</strong> {{ stadium.contact_info }}</p>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex gap-2 justify-content-end">
+                    <a href="{{ url_for('admin.edit_stadium', id=stadium.id) }}" class="btn btn-warning btn-sm d-flex align-items-center gap-1" data-bs-toggle="tooltip" title="Edit Stadium">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.delete_stadium', id=stadium.id) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center gap-1" data-bs-toggle="tooltip" title="Delete Stadium" onclick="return confirm('Are you sure you want to delete this stadium?');">
+                            <i class="bi bi-trash3"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">No stadiums found.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Enable Bootstrap tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <!-- Management Shortcuts -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-6">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-calendar-event"></i> Manage Events</h5>
+                    <p class="card-text">Review, approve, and manage all events.</p>
+                    <a href="{{ url_for('admin.events') }}" class="btn btn-primary">Go to Events</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-building"></i> Manage Stadiums</h5>
+                    <p class="card-text">Add, edit, or remove stadiums.</p>
+                    <a href="{{ url_for('admin.stadiums') }}" class="btn btn-success">Go to Stadiums</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Quick Stats -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-building"></i> Stadiums</h5>
+                    <p class="card-text display-6">{{ stadiums|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-calendar-event"></i> Events</h5>
+                    <p class="card-text display-6">{{ events|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-people"></i> Users</h5>
+                    <p class="card-text display-6">{{ tickets|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-ticket-perforated"></i> Bookings</h5>
+                    <p class="card-text display-6">{{ tickets|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Recent Events Table -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Events</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Stadium</th>
+                            <th>Organizer</th>
+                            <th>Date</th>
+                            <th>Tickets</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td>{{ event.name }}</td>
+                            <td>{{ event.stadium.name }}</td>
+                            <td>{{ event.organizer.username }}</td>
+                            <td>{{ event.time_slot.start_time.strftime('%Y-%m-%d %H:%M') if event.time_slot else 'TBA' }}</td>
+                            <td><span class="badge bg-info">{{ event.available_tickets }}/{{ event.total_tickets }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No events found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

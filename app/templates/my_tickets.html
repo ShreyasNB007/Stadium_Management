@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}My Tickets - Stadium Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Tickets</h2>
+
+    {% if tickets %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for ticket in tickets %}
+        <div class="col">
+            <div class="card h-100">
+                {% if ticket.event.thumbnail %}
+                <img src="{{ url_for('static', filename='event_thumbnails/' + ticket.event.thumbnail) }}" 
+                     class="card-img-top" alt="{{ ticket.event.name }}"
+                     style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/default_event.jpg') }}" 
+                     class="card-img-top" alt="Default Event Image"
+                     style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ ticket.event.name }}</h5>
+                    <div class="mb-3">
+                        <p class="mb-1"><i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ ticket.event.stadium.name }}</p>
+                        <p class="mb-1"><i class="bi bi-ticket"></i> <strong>Quantity:</strong> {{ ticket.quantity }}</p>
+                        <p class="mb-1"><i class="bi bi-hash"></i> <strong>Seat Number:</strong> {{ ticket.seat_number }}</p>
+                        <p class="mb-1"><i class="bi bi-building"></i> <strong>Stand:</strong> {{ ticket.stand }}</p>
+                        <p class="mb-1"><i class="bi bi-calendar"></i> <strong>Booked On:</strong> {{ ticket.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.download_ticket', booking_id=ticket.id) }}" class="btn btn-primary">
+                            <i class="bi bi-download"></i> Download Ticket
+                        </a>
+                        {% if ticket.status == 'confirmed' %}
+                            <form method="POST" action="{{ url_for('main.cancel_booking', booking_id=ticket.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-x-circle"></i> Cancel Booking
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        You haven't booked any tickets yet. <a href="{{ url_for('main.events') }}">Browse events</a> to book tickets.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Enable Bootstrap tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+</script>
+{% endblock %} 
