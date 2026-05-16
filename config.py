@@ -14,7 +14,7 @@ class Config:
     WTF_CSRF_TIME_LIMIT = 3600  # 1 hour
     
     # Database
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:Shrey_007@localhost/stadium_management_db'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:root@mysql/stadium_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session configuration
@@ -41,7 +41,7 @@ class Config:
     # Database Configuration
     DB_USER = 'root'
     DB_PASSWORD = 'Shrey_007'
-    DB_HOST = 'localhost'
+    DB_HOST = 'mysql'
     DB_NAME = 'stadium_management_db'
 
     # API Keys
