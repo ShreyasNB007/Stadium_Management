@@ -6,7 +6,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git branch: 'main',
-                url: 'git@github.com:YOUR_USERNAME/YOUR_REPO.git'
+                url: 'https://github.com/ShreyasNB007/Stadium_Management.git'
             }
         }
 
