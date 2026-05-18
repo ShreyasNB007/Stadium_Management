@@ -6,4 +6,4 @@ sleep 45
 
 echo "Starting Flask app..."
 
-python run.py
+python app.py
