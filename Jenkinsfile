@@ -13,7 +13,7 @@ pipeline {
         stage('Stop Old Containers') {
             steps {
                 bat 'docker compose down --remove-orphans'
-                bat 'docker rm -f stadium-mysql || exit 0'
+                bat 'docker rm -f stadium-mysql stadium-app || exit 0'
             }
         }
 
